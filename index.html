@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -203,16 +202,20 @@ small { color: #c7b8d6; }
 <section id="vendas" class="panel">
     <h2>Registrar venda</h2>
 
-    <label>Produto</label>
+    <label for="produto">Produto</label>
     <select id="produto" onchange="atualizarPreco()">
-        <option value="suspiro">Suspiro — R$ 0,50</option>
-        <option value="palha">Palha italiana — R$ 7,00</option>
+        <option value="palha">Palha italiana — R$ 6,00</option>
+        <option value="suspiro">Pacote de Suspiro (9 un.) — R$ 8,00</option>
+        <option value="cestaPequena6">Cesta pequena (R$ 6,00)</option>
+        <option value="cestaPequena8">Cesta pequena (R$ 8,00)</option>
+        <option value="cestaMedia">Cesta média — R$ 15,00</option>
+        <option value="cestaGrande">Cesta grande — R$ 35,00</option>
     </select>
 
-    <label>Preço unitário</label>
-    <input id="preco" value="R$ 0,50" readonly>
+    <label for="preco">Preço unitário</label>
+    <input id="preco" value="R$ 6,00" readonly>
 
-    <label>Quantidade</label>
+    <label for="quantidade">Quantidade</label>
     <input type="number" id="quantidade" min="1" step="1"
     placeholder="Digite a quantidade">
 
@@ -240,8 +243,21 @@ small { color: #c7b8d6; }
 
 <script>
 const precos = {
-    suspiro: 0.50,
-    palha: 7.00
+    palha: 6.00,
+    suspiro: 8.00,
+    cestaPequena6: 6.00,
+    cestaPequena8: 8.00,
+    cestaMedia: 15.00,
+    cestaGrande: 35.00
+};
+
+const nomes = {
+    palha: "Palha italiana",
+    suspiro: "Pacote de Suspiro (9 un.)",
+    cestaPequena6: "Cesta pequena (R$ 6,00)",
+    cestaPequena8: "Cesta pequena (R$ 8,00)",
+    cestaMedia: "Cesta média",
+    cestaGrande: "Cesta grande"
 };
 
 let vendas = [];
@@ -295,8 +311,6 @@ function apagar() {
 }
 
 function operar(op) {
-    const numero = Number(visor);
-
     if (operadorAtual && !novoNumero) {
         calcular();
     }
@@ -361,10 +375,12 @@ function atualizarPreco() {
 
 function atualizarTotal() {
     const produto = document.getElementById("produto").value;
-    const quantidade = Number(document.getElementById("quantidade").value);
+    const rawQtd = document.getElementById("quantidade").value;
+    const quantidade = Number(rawQtd);
+    const qtdValida = (Number.isInteger(quantidade) && quantidade > 0) ? quantidade : 0;
 
     document.getElementById("totalVenda").textContent =
-        "Total: " + dinheiro(precos[produto] * quantidade);
+        "Total: " + dinheiro(precos[produto] * qtdValida);
 }
 
 function registrarVenda() {
@@ -376,19 +392,15 @@ function registrarVenda() {
         return;
     }
 
-    const nomes = {
-        suspiro: "Suspiro",
-        palha: "Palha italiana"
-    };
-
     const preco = precos[produto];
+    const totalCalculado = Number((preco * quantidade).toFixed(2));
 
     vendas.push({
         id: Date.now() + Math.random(),
         produto: nomes[produto],
         quantidade,
         preco,
-        total: preco * quantidade,
+        total: totalCalculado,
         data: new Date().toLocaleString("pt-BR")
     });
 
@@ -428,8 +440,8 @@ function atualizarTela() {
     let faturamento = 0;
 
     vendas.slice().reverse().forEach(venda => {
-        quantidadeTotal += venda.quantidade;
-        faturamento += venda.total;
+        quantidadeTotal += Number(venda.quantidade) || 0;
+        faturamento += Number(venda.total) || 0;
 
         const item = document.createElement("div");
         item.className = "venda";
@@ -474,6 +486,18 @@ function atualizarTela() {
 document.getElementById("quantidade").addEventListener(
     "input", atualizarTotal
 );
+
+window.addEventListener("storage", (e) => {
+    if (e.key === "lojinha_team_sales_v1") {
+        try {
+            const dados = JSON.parse(e.newValue || "[]");
+            if (Array.isArray(dados)) {
+                vendas = dados;
+                atualizarTela();
+            }
+        } catch (erro) {}
+    }
+});
 
 try {
     vendas = JSON.parse(
