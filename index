@@ -1,0 +1,492 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel da Equipe</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    padding: 20px;
+    background: #100b19;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+.container { max-width: 850px; margin: auto; }
+
+h1 { color: #c49aff; text-align: center; }
+h2 { color: #d6baff; }
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin: 25px 0;
+}
+
+button, select, input {
+    font: inherit;
+    border-radius: 9px;
+    padding: 12px;
+}
+
+button {
+    border: none;
+    cursor: pointer;
+    background: #742bd1;
+    color: white;
+    font-weight: bold;
+}
+
+button:hover { background: #914be9; }
+.tabs button { flex: 1; }
+
+.panel {
+    display: none;
+    background: #21172e;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.panel.active { display: block; }
+
+input, select {
+    width: 100%;
+    margin: 7px 0 15px;
+    background: #332542;
+    border: 1px solid #68478a;
+    color: white;
+}
+
+.resultado {
+    font-size: 25px;
+    color: #c49aff;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+.resumo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.card {
+    background: #332542;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.card strong {
+    display: block;
+    color: #c49aff;
+    font-size: 22px;
+    margin-top: 8px;
+}
+
+.venda {
+    background: #332542;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 10px 0;
+}
+
+.venda button {
+    margin-top: 10px;
+    background: #a83250;
+}
+
+small { color: #c7b8d6; }
+
+/* CALCULADORA PADRÃO */
+
+.calculadora {
+    max-width: 360px;
+    margin: 20px auto;
+    padding: 18px;
+    background: #171020;
+    border: 1px solid #68478a;
+    border-radius: 18px;
+}
+
+.visor {
+    width: 100%;
+    height: 85px;
+    background: #332542;
+    color: white;
+    border: none;
+    text-align: right;
+    font-size: 32px;
+    padding: 15px;
+    margin-bottom: 12px;
+}
+
+.botoes {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 9px;
+}
+
+.botoes button {
+    min-height: 58px;
+    font-size: 21px;
+    background: #332542;
+}
+
+.botoes button.operador { background: #742bd1; }
+.botoes button.limpar { background: #a83250; }
+.botoes button.igual {
+    background: #914be9;
+    grid-column: span 2;
+}
+
+@media(max-width: 500px) {
+    body { padding: 12px; }
+    .resumo { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>PAINEL DA EQUIPE</h1>
+<p style="text-align:center;color:#bda9d1">
+Área interna de controle
+</p>
+
+<div class="tabs">
+    <button onclick="abrirPainel('calculadora')">Calculadora</button>
+    <button onclick="abrirPainel('vendas')">Controle de vendas</button>
+</div>
+
+<section id="calculadora" class="panel active">
+    <h2>Calculadora</h2>
+
+    <div class="calculadora">
+        <input class="visor" id="visor" value="0" readonly>
+
+        <div class="botoes">
+            <button class="limpar" onclick="limpar()">C</button>
+            <button onclick="apagar()">⌫</button>
+            <button class="operador" onclick="operar('/')">÷</button>
+            <button class="operador" onclick="operar('*')">×</button>
+
+            <button onclick="digitar('7')">7</button>
+            <button onclick="digitar('8')">8</button>
+            <button onclick="digitar('9')">9</button>
+            <button class="operador" onclick="operar('-')">−</button>
+
+            <button onclick="digitar('4')">4</button>
+            <button onclick="digitar('5')">5</button>
+            <button onclick="digitar('6')">6</button>
+            <button class="operador" onclick="operar('+')">+</button>
+
+            <button onclick="digitar('1')">1</button>
+            <button onclick="digitar('2')">2</button>
+            <button onclick="digitar('3')">3</button>
+            <button onclick="digitar('0')">0</button>
+
+            <button onclick="digitar('.')">,</button>
+            <button onclick="porcentagem()">%</button>
+            <button class="igual" onclick="calcular()">=</button>
+        </div>
+    </div>
+</section>
+
+<section id="vendas" class="panel">
+    <h2>Registrar venda</h2>
+
+    <label>Produto</label>
+    <select id="produto" onchange="atualizarPreco()">
+        <option value="suspiro">Suspiro — R$ 0,50</option>
+        <option value="palha">Palha italiana — R$ 7,00</option>
+    </select>
+
+    <label>Preço unitário</label>
+    <input id="preco" value="R$ 0,50" readonly>
+
+    <label>Quantidade</label>
+    <input type="number" id="quantidade" min="1" step="1"
+    placeholder="Digite a quantidade">
+
+    <div class="resultado" id="totalVenda">Total: R$ 0,00</div>
+
+    <button onclick="registrarVenda()">Registrar venda</button>
+
+    <div class="resumo">
+        <div class="card">
+            Quantidade vendida
+            <strong id="quantidadeTotal">0</strong>
+        </div>
+
+        <div class="card">
+            Faturamento total
+            <strong id="faturamento">R$ 0,00</strong>
+        </div>
+    </div>
+
+    <h2>Histórico de vendas</h2>
+    <div id="historico"></div>
+</section>
+
+</div>
+
+<script>
+const precos = {
+    suspiro: 0.50,
+    palha: 7.00
+};
+
+let vendas = [];
+let visor = "0";
+let primeiroNumero = null;
+let operadorAtual = null;
+let novoNumero = false;
+
+function abrirPainel(id) {
+    document.querySelectorAll(".panel").forEach(p =>
+        p.classList.remove("active")
+    );
+    document.getElementById(id).classList.add("active");
+}
+
+/* CALCULADORA */
+
+function mostrarVisor() {
+    document.getElementById("visor").value =
+        visor.replace(".", ",");
+}
+
+function digitar(numero) {
+    if (novoNumero) {
+        visor = numero === "." ? "0." : numero;
+        novoNumero = false;
+    } else if (numero === "." && visor.includes(".")) {
+        return;
+    } else if (visor === "0" && numero !== ".") {
+        visor = numero;
+    } else {
+        visor += numero;
+    }
+
+    mostrarVisor();
+}
+
+function limpar() {
+    visor = "0";
+    primeiroNumero = null;
+    operadorAtual = null;
+    novoNumero = false;
+    mostrarVisor();
+}
+
+function apagar() {
+    if (novoNumero) return;
+    visor = visor.length > 1 ? visor.slice(0, -1) : "0";
+    if (visor === "-") visor = "0";
+    mostrarVisor();
+}
+
+function operar(op) {
+    const numero = Number(visor);
+
+    if (operadorAtual && !novoNumero) {
+        calcular();
+    }
+
+    primeiroNumero = Number(visor);
+    operadorAtual = op;
+    novoNumero = true;
+}
+
+function calcular() {
+    if (operadorAtual === null || primeiroNumero === null) return;
+
+    const segundoNumero = Number(visor);
+    let resultado;
+
+    switch (operadorAtual) {
+        case "+":
+            resultado = primeiroNumero + segundoNumero;
+            break;
+        case "-":
+            resultado = primeiroNumero - segundoNumero;
+            break;
+        case "*":
+            resultado = primeiroNumero * segundoNumero;
+            break;
+        case "/":
+            if (segundoNumero === 0) {
+                alert("Não é possível dividir por zero.");
+                limpar();
+                return;
+            }
+            resultado = primeiroNumero / segundoNumero;
+            break;
+    }
+
+    visor = String(Number(resultado.toPrecision(12)));
+    primeiroNumero = null;
+    operadorAtual = null;
+    novoNumero = true;
+    mostrarVisor();
+}
+
+function porcentagem() {
+    visor = String(Number(visor) / 100);
+    mostrarVisor();
+}
+
+/* CONTROLE DE VENDAS */
+
+function dinheiro(valor) {
+    return valor.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    });
+}
+
+function atualizarPreco() {
+    const produto = document.getElementById("produto").value;
+    document.getElementById("preco").value = dinheiro(precos[produto]);
+    atualizarTotal();
+}
+
+function atualizarTotal() {
+    const produto = document.getElementById("produto").value;
+    const quantidade = Number(document.getElementById("quantidade").value);
+
+    document.getElementById("totalVenda").textContent =
+        "Total: " + dinheiro(precos[produto] * quantidade);
+}
+
+function registrarVenda() {
+    const produto = document.getElementById("produto").value;
+    const quantidade = Number(document.getElementById("quantidade").value);
+
+    if (!Number.isInteger(quantidade) || quantidade <= 0) {
+        alert("Digite uma quantidade inteira maior que zero.");
+        return;
+    }
+
+    const nomes = {
+        suspiro: "Suspiro",
+        palha: "Palha italiana"
+    };
+
+    const preco = precos[produto];
+
+    vendas.push({
+        id: Date.now() + Math.random(),
+        produto: nomes[produto],
+        quantidade,
+        preco,
+        total: preco * quantidade,
+        data: new Date().toLocaleString("pt-BR")
+    });
+
+    salvar();
+    atualizarTela();
+
+    document.getElementById("quantidade").value = "";
+    atualizarTotal();
+
+    alert("Venda registrada com sucesso!");
+}
+
+function excluirVenda(id) {
+    if (!confirm("Deseja excluir esta venda?")) return;
+
+    vendas = vendas.filter(v => v.id !== id);
+    salvar();
+    atualizarTela();
+}
+
+function salvar() {
+    try {
+        localStorage.setItem(
+            "lojinha_team_sales_v1",
+            JSON.stringify(vendas)
+        );
+    } catch (erro) {
+        alert("Não foi possível salvar as vendas.");
+    }
+}
+
+function atualizarTela() {
+    const historico = document.getElementById("historico");
+    historico.innerHTML = "";
+
+    let quantidadeTotal = 0;
+    let faturamento = 0;
+
+    vendas.slice().reverse().forEach(venda => {
+        quantidadeTotal += venda.quantidade;
+        faturamento += venda.total;
+
+        const item = document.createElement("div");
+        item.className = "venda";
+
+        const info = document.createElement("div");
+        const titulo = document.createElement("strong");
+        titulo.textContent = venda.produto;
+
+        const data = document.createElement("small");
+        data.textContent = venda.data;
+
+        const detalhes = document.createElement("p");
+        detalhes.textContent =
+            "Quantidade: " + venda.quantidade +
+            " | Preço unitário: " + dinheiro(venda.preco);
+
+        const total = document.createElement("strong");
+        total.textContent = "Total: " + dinheiro(venda.total);
+
+        info.append(titulo, document.createElement("br"), data,
+            detalhes, total);
+
+        const botao = document.createElement("button");
+        botao.textContent = "Excluir venda";
+        botao.onclick = () => excluirVenda(venda.id);
+
+        item.append(info, botao);
+        historico.appendChild(item);
+    });
+
+    if (vendas.length === 0) {
+        historico.textContent = "Nenhuma venda registrada ainda.";
+    }
+
+    document.getElementById("quantidadeTotal").textContent =
+        quantidadeTotal;
+
+    document.getElementById("faturamento").textContent =
+        dinheiro(faturamento);
+}
+
+document.getElementById("quantidade").addEventListener(
+    "input", atualizarTotal
+);
+
+try {
+    vendas = JSON.parse(
+        localStorage.getItem("lojinha_team_sales_v1") || "[]"
+    );
+    if (!Array.isArray(vendas)) vendas = [];
+} catch (erro) {
+    vendas = [];
+}
+
+mostrarVisor();
+atualizarPreco();
+atualizarTela();
+</script>
+</body>
+</html>
